@@ -3,10 +3,10 @@
     <springProperty scope="context" name="HOST" source="host" defaultValue="127.0.0.1"/>
     <!-- 日志存放路径 -->
     <springProperty scope="context" name="applicationName" source="spring.application.name"/>
-    <property name="LOGGING_PATH" value="./data/logs/java-${applicationName}"/>
-    <!--    <springProfile name="local">-->
-    <!--        <property name="LOGGING_PATH" value=".${LOGGING_PATH}"/>-->
-    <!--    </springProfile>-->
+    <property name="LOGGING_PATH" value="/data/logs/${applicationName}"/>
+    <springProfile name="dev">
+        <property name="LOGGING_PATH" value=".${LOGGING_PATH}"/>
+    </springProfile>
     <!-- 日志输出格式 -->
     <property name="log.pattern"
               value="[%X{traceId}] %d{yyyy-MM-dd HH:mm:ss.SSS} [${HOST} %thread] %-5level %logger{20} - [%method,%line] - %msg%n"/>
