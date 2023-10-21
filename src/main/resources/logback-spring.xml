@@ -68,9 +68,9 @@
     </appender>
 
     <!-- 系统模块日志级别控制  -->
-    <logger name="com.jiem.speed" level="debug"/>
+    <logger name="com.jiem.lighten" level="debug"/>
     <springProfile name="prod">
-        <logger name="com.jiem.speed" level="info"/>
+        <logger name="com.jiem.lighten" level="info"/>
     </springProfile>
 
     <!-- Spring日志级别控制  -->

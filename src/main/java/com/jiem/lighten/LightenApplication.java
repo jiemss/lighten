@@ -1,4 +1,4 @@
-package com.jiem.speed;
+package com.jiem.lighten;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -12,9 +12,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @Slf4j
 @SpringBootApplication
-public class SpeedUpApplication {
+public class LightenApplication {
     public static void main(String[] args) {
-        SpringApplication.run(SpeedUpApplication.class, args);
+        SpringApplication.run(LightenApplication.class, args);
         log.info("(♥◠‿◠)ﾉﾞ 启动成功   ლ(´ڡ`ლ)ﾞ  ");
     }
 }

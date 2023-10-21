@@ -8,6 +8,6 @@ server:
 
 spring:
   application:
-    name: speed—up
+    name: lighten
   profiles:
     active: dev
