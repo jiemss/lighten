@@ -1,11 +1,12 @@
 package com.jiem.lighten.modules.tumor.pojo;
 
-import cn.hutool.core.date.DateTime;
+import com.alibaba.excel.annotation.ExcelProperty;
+import com.alibaba.excel.annotation.write.style.ColumnWidth;
+import com.alibaba.excel.annotation.write.style.ContentRowHeight;
+import com.alibaba.excel.annotation.write.style.HeadRowHeight;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 
 /**
@@ -16,41 +17,61 @@ import java.io.Serializable;
  */
 @Data
 @Entity
+@ColumnWidth(25)
+@HeadRowHeight(20)
+@ContentRowHeight(20)
 @Table(name = "tumor_base_info")
 public class BaseInfo implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @ExcelProperty("主键")
     private Long id;
 
+    @ExcelProperty("编号")
     private String registr;
 
+    @ExcelProperty("姓名")
     private String name;
 
+    @ExcelProperty("身份证号")
     private String indno;
 
+    @ExcelProperty("性别")
     private String sex;
 
-    private String age;
+    @ExcelProperty("年龄")
+    private Integer age;
 
-    private DateTime birthda;
+    @ExcelProperty("出生年月")
+    private String birthda;
 
+    @ExcelProperty("联系电话")
     private String phone;
 
+    @ExcelProperty("婚姻状况")
     private String mari;
 
+    @ExcelProperty("民族")
     private String trib;
 
+    @ExcelProperty("工作单位")
     private String occu;
 
+    @ExcelProperty("职业")
     private String workcom;
 
+    @ExcelProperty("户籍地址")
     private String address;
 
+    @ExcelProperty("常见地址")
     private String conservation;
 
-    private DateTime recodate;
+    @ExcelProperty("登记时间")
+    private String recodate;
 
-    private DateTime updated;
+    @ExcelProperty("更新时间")
+    private String updated;
 
 
 }

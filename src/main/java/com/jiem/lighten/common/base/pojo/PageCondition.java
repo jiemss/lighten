@@ -5,7 +5,6 @@ import lombok.Data;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.thymeleaf.util.StringUtils;
 
 import java.util.Collections;
 
@@ -32,11 +31,11 @@ public class PageCondition {
         if (rows <= 0) {
             rows = 10;
         }
-        //处理排序
-        if (!StringUtils.isEmpty(sidx) && !StringUtils.isEmpty(sord)) {
-            Direction direction = "desc".equals(sord.toLowerCase()) ? Direction.DESC : Direction.ASC;
-            return PageRequest.of(page - 1, rows, Sort.by(direction, sidx));
-        }
+//        //处理排序
+//        if (!StringUtils.isEmpty(sidx) && !StringUtils.isEmpty(sord)) {
+//            Direction direction = "desc".equals(sord.toLowerCase()) ? Direction.DESC : Direction.ASC;
+//            return PageRequest.of(page - 1, rows, Sort.by(direction, sidx));
+//        }
         return PageRequest.of(page - 1, rows);
     }
 }

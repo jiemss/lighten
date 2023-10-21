@@ -20,6 +20,7 @@
         <thymeleaf.version>3.0.2.RELEASE</thymeleaf.version>
         <thymeleaf-layout-dialect.version>2.0.1</thymeleaf-layout-dialect.version>
         <hutool.version>5.8.11</hutool.version>
+        <easyexcel.version>2.2.6</easyexcel.version>
     </properties>
 
     <dependencies>
@@ -68,10 +69,11 @@
         </dependency>
 
         <!-- thymeleaf模板 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-thymeleaf</artifactId>-->
+<!--        </dependency>-->
+
 
         <!-- CopyUtil需要用到 -->
         <dependency>
@@ -85,6 +87,12 @@
             <version>3.2.2</version>
         </dependency>
 
+        <!--  excel工具类   -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>${easyexcel.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

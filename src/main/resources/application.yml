@@ -10,6 +10,7 @@ spring:
     name: lighten
   profiles:
     active: ${lighten:dev}
+
   thymeleaf:
     prefix: classpath:/view/
 
