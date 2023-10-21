@@ -23,6 +23,16 @@ spring:
       max-file-size: 50MB
       max-request-size: 500MB
 
+  jpa:
+    database: h2
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+  h2:
+    console:
+      path: /h2
+      enabled: true
 
 
 
