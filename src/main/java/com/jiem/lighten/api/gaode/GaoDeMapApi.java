@@ -27,6 +27,14 @@ public class GaoDeMapApi {
     private static final String SEARCH_LOCATION_URL = "https://restapi.amap.com/v3/geocode/geo";
     private static final String SEARCH_ADDRESS_DETAIL_URL = "https://restapi.amap.com/v3/geocode/regeo";
 
+
+    public ReGeoCode searchAddressDetail(String city, String address){
+
+        return null;
+    }
+
+
+
     /**
      * 根据地址搜索坐标
      *

@@ -37,5 +37,8 @@ public interface BaseInfoService extends CommonService<BaseInfoVo, BaseInfo, Lon
      void convertJieDao();
 
     BiConsumer<ExcelWriter, WriteSheet> excel();
+
+
+    Boolean exeBaseInfo(String registr, Long streetCode, String cookie);
 }
 

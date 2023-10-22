@@ -28,11 +28,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +45,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-@Transactional(rollbackFor = Exception.class)
 public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo, Long> implements BaseInfoService {
     private static final String CONTEXT_URL = "http://218.28.13.204:35556/";
 
@@ -134,41 +131,45 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
             }
             pageIndex++;
             for (BaseInfo baseInfo : baseInfos) {
-                // 已结束
-                Boolean isOk = baseInfo.getIsOk();
-                Boolean isConvert = baseInfo.getIsConvert();
-                if ((isConvert != null && isConvert) || (isOk != null && isOk)) {
-                    continue;
-                }
-
-                String address = baseInfo.getAddress();
-                if (isJinShuiNull(address)) {
-                    baseInfo.setIsJinShuiNull(true);
-                    baseInfoRepository.save(baseInfo);
-                    continue;
-                } else {
-                    baseInfo.setIsJinShuiNull(false);
-                }
-
-                AddressDict addressDict = belongAddressDict(address);
-                if (addressDict == null) {
-                    List<GeoCode> geoCodeList = gaoDeMapApi.searchLocation("郑州", address);
-                    if (CollectionUtil.isNotEmpty(geoCodeList)) {
-                        GeoCode geoCode = geoCodeList.get(0);
-                        ReGeoCode reGeoCode = gaoDeMapApi.searchAddressDetail(geoCode.getLocation());
-                        addressDict = belongAddressDict2(reGeoCode.getTownship());
-                        baseInfo.setCity(reGeoCode.getCity());
-                        baseInfo.setDistrict(reGeoCode.getDistrict());
-                        baseInfo.setStreet(reGeoCode.getTownship());
+                try {
+                    // 已结束
+                    Boolean isOk = baseInfo.getIsOk();
+                    Boolean isConvert = baseInfo.getIsConvert();
+                    if ((isConvert != null && isConvert) || (isOk != null && isOk)) {
+                        continue;
                     }
+
+                    String address = baseInfo.getAddress();
+                    if (isJinShuiNull(address)) {
+                        baseInfo.setIsJinShuiNull(true);
+                        baseInfoRepository.save(baseInfo);
+                        continue;
+                    } else {
+                        baseInfo.setIsJinShuiNull(false);
+                    }
+
+                    AddressDict addressDict = belongAddressDict(address);
+                    if (addressDict == null) {
+                        List<GeoCode> geoCodeList = gaoDeMapApi.searchLocation("郑州", address);
+                        if (CollectionUtil.isNotEmpty(geoCodeList)) {
+                            GeoCode geoCode = geoCodeList.get(0);
+                            ReGeoCode reGeoCode = gaoDeMapApi.searchAddressDetail(geoCode.getLocation());
+                            addressDict = belongAddressDict2(reGeoCode.getTownship());
+                            baseInfo.setCity(reGeoCode.getCity());
+                            baseInfo.setDistrict(reGeoCode.getDistrict());
+                            baseInfo.setStreet(reGeoCode.getTownship());
+                        }
+                    }
+                    if (addressDict != null) {
+                        baseInfo.setIsConvert(true);
+                        baseInfo.setDistrictCode(addressDict.getUpId());
+                        baseInfo.setStreetCode(addressDict.getValue());
+                        baseInfo.setStreet(addressDict.getText());
+                    }
+                    baseInfoRepository.save(baseInfo);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                if (addressDict != null) {
-                    baseInfo.setIsConvert(true);
-                    baseInfo.setDistrictCode(addressDict.getUpId());
-                    baseInfo.setStreetCode(addressDict.getValue());
-                    baseInfo.setStreet(addressDict.getText());
-                }
-                baseInfoRepository.save(baseInfo);
             }
         }
     }
@@ -187,32 +188,25 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                 }
                 pageIndex++;
                 List<BaseInfo> content = baseInfos.getContent();
-                for (BaseInfo baseInfo : content) {
-                    String address = removeMatch(baseInfo.getAddress());
-                    if (StringUtils.hasText(address)) {
-                        address = address.replaceAll("河南省", "");
-                        address = address.replaceAll("郑州市", "");
-                        address = address.replaceAll("金水区", "");
-                        address = address.replaceAll("河南", "");
-                        address = address.replaceAll("郑州", "");
-                        address = address.replaceAll("金水", "");
-                        address = address.replaceAll("市辖区", "");
-                        address = address.replaceAll("不详", "");
-                        address = address.replaceAll("镇", "");
-                        address = address.replaceAll("乡", "");
-                        address = address.replaceAll("郑", "");
-                        address = address.replaceAll("河", "");
-                        address = address.replaceAll("金", "");
-                        if (!StringUtils.hasText(address)) {
-                            excelWriter.write(Collections.singletonList(baseInfo), writeSheet);
-                            continue;
-                        }
-                    }
-                    //excelWriter.write(Collections.singletonList(baseInfo), writeSheet);
-                }
-
+                excelWriter.write(baseInfos.getContent(), writeSheet);
             }
         };
+    }
+
+
+    /**
+     * 转换
+     *
+     * @param registr    编号
+     * @param streetCode 街道编码
+     */
+    @Override
+    public Boolean exeBaseInfo(String registr, Long streetCode, String cookie) {
+        BaseInfo baseInfo = popBaseInfo(registr, cookie);
+        if (baseInfo == null) {
+            return null;
+        }
+        return popBaseInfo(registr, streetCode, cookie);
     }
 
 
@@ -257,6 +251,85 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                 }.getType());
             }
             return ListUtil.empty();
+        }
+    }
+
+
+    /**
+     * 远程拉取基础信息
+     *
+     * @param cookie cookie
+     * @return 基础信息
+     */
+    private BaseInfo popBaseInfo(String registr, String cookie) {
+        // {"uState":"true","uLimit":"true","nAddCode":"410105000000","nKeyType":"0","Key":"234101101625605"}
+        Map<String, Object> keyMap = new HashMap<>(5);
+        keyMap.put("uState", true);
+        keyMap.put("uLimit", true);
+        keyMap.put("nAddCode", "410105000000");
+        keyMap.put("nKeyType", "0");
+        keyMap.put("Key", registr);
+
+        HttpRequest request = HttpUtil.createGet(BASE_URL);
+        request.form("handler", "Control");
+        request.form("Key", JsonUtils.toJson(keyMap));
+        request.form("Type", "Q");
+        request.form("PageIndex", 1);
+        request.form("RecordCount", 2);
+
+        request.header("Accept", "application/json, text/javascript, */*; q=0.01");
+        request.header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+        request.header("Cookie", cookie);
+
+        try (HttpResponse execute = request.execute()) {
+            String body = execute.body();
+            log.info("远程拉取基础信息 结果：{}", body);
+            JsonObject resultJson = GsonUtils.parse(body);
+            if (resultJson != null && "000".equals(resultJson.get("code").getAsString())) {
+                List<BaseInfo> dataset = GsonUtils.gson().fromJson(resultJson.get("dataset"), new TypeToken<List<BaseInfo>>() {
+                }.getType());
+                if (CollectionUtil.isNotEmpty(dataset)) {
+                    return dataset.get(0);
+                }
+            }
+            return null;
+        }
+    }
+
+
+    /**
+     * 远程拉取基础信息
+     *
+     * @param cookie cookie
+     * @return 基础信息
+     */
+    private boolean popBaseInfo(String registr, Long streetCode, String cookie) {
+        //{"ID":"##","tAddCode":"@@","uState":"true","uLimit":"true","Status":"false","nAddCode":"410105000000","nKeyType":"0","Key":""}
+        Map<String, Object> keyMap = new HashMap<>(5);
+        keyMap.put("uState", true);
+        keyMap.put("uLimit", true);
+        keyMap.put("Status", false);
+        keyMap.put("nAddCode", "410105000000");
+        keyMap.put("nKeyType", "0");
+        keyMap.put("ID", registr);
+        keyMap.put("tAddCode", streetCode);
+
+        HttpRequest request = HttpUtil.createGet(BASE_URL);
+        request.form("handler", "Control");
+        request.form("Key", JsonUtils.toJson(keyMap));
+        request.form("Type", "T");
+        request.form("PageIndex", 1);
+        request.form("RecordCount", 2);
+
+        request.header("Accept", "application/json, text/javascript, */*; q=0.01");
+        request.header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+        request.header("Cookie", cookie);
+
+        try (HttpResponse execute = request.execute()) {
+            String body = execute.body();
+            log.info("远程拉取基础信息 结果：{}", body);
+            JsonObject resultJson = GsonUtils.parse(body);
+            return resultJson != null && "000".equals(resultJson.get("code").getAsString());
         }
     }
 

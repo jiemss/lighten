@@ -64,6 +64,14 @@ public class BaseInfoController {
         ExcelUtils.repeatedWrite(response, "数据", "数据", BaseInfo.class, writeDateConsumer);
     }
 
+    /**
+     * 远程拉取地址字典
+     */
+    @PostMapping("exeBaseInfo/{registr}/{streetCode}")
+    public Result<Boolean> exeBaseInfo(@PathVariable("registr") String registr
+            , @PathVariable("streetCode") String streetCode, @RequestBody String cookie) {
+        return Result.of(baseInfoService.exeBaseInfo(registr, Long.parseLong(streetCode), cookie));
+    }
 
 }
 
