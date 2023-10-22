@@ -1,4 +1,4 @@
-package com.jiem.lighten.common.exceptionhandler;
+package com.jiem.lighten.common.exception;
 
 /**
  * 登录异常

@@ -1,4 +1,4 @@
-package com.jiem.lighten.common.exceptionhandler;
+package com.jiem.lighten.common.exception;
 
 /**
  * 自定义异常枚举类

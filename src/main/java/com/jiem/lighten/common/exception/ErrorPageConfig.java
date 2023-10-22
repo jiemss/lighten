@@ -1,4 +1,4 @@
-package com.jiem.lighten.common.exceptionhandler;
+package com.jiem.lighten.common.exception;
 
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;

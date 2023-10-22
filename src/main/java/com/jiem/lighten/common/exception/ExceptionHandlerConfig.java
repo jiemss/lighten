@@ -1,4 +1,4 @@
-package com.jiem.lighten.common.exceptionhandler;
+package com.jiem.lighten.common.exception;
 
 import com.jiem.lighten.common.base.pojo.Result;
 import com.jiem.lighten.common.util.ErrorUtil;
