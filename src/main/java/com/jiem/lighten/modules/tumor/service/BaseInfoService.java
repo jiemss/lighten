@@ -34,11 +34,13 @@ public interface BaseInfoService extends CommonService<BaseInfoVo, BaseInfo, Lon
     /**
      * 转换街道
      */
-     void convertJieDao();
+    void convertJieDao();
 
     BiConsumer<ExcelWriter, WriteSheet> excel();
 
 
     Boolean exeBaseInfo(String registr, Long streetCode, String cookie);
+
+    Integer isJinShuiNull(Long streetCode, Integer num, String cookie);
 }
 

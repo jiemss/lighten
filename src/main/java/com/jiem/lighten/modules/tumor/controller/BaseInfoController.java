@@ -73,5 +73,14 @@ public class BaseInfoController {
         return Result.of(baseInfoService.exeBaseInfo(registr, Long.parseLong(streetCode), cookie));
     }
 
+    /**
+     * 远程拉取地址字典
+     */
+    @PostMapping("isJinShuiNull/{streetCode}/{num}")
+    public Result<Integer> isJinShuiNull(@PathVariable("num") Integer num
+            , @PathVariable("streetCode") String streetCode, @RequestBody String cookie) {
+        return Result.of(baseInfoService.isJinShuiNull(Long.parseLong(streetCode), num, cookie));
+    }
+
 }
 
