@@ -1,6 +1,6 @@
 package com.jiem.lighten.common.base.pojo;
 
-import com.jiem.lighten.common.exceptionhandler.ErrorEnum;
+import com.jiem.lighten.common.exception.ErrorEnum;
 import lombok.Data;
 
 import java.io.Serializable;
