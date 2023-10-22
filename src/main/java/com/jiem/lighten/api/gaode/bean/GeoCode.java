@@ -3,8 +3,6 @@ package com.jiem.lighten.api.gaode.bean;
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * 地理编码
  *
@@ -41,14 +39,14 @@ public class GeoCode {
      * 所属区域 - 金水区
      */
     private String district;
-    /**
-     * 所属街道
-     */
-    private List<String> street;
-    /**
-     * 门牌
-     */
-    private List<String> number;
+//    /**
+//     * 所属街道
+//     */
+//    private List<String> street;
+//    /**
+//     * 门牌
+//     */
+//    private List<String> number;
     /**
      * 经纬度坐标点
      */
@@ -62,8 +60,8 @@ public class GeoCode {
      */
     @SerializedName("adcode")
     private String adCode;
-
-    private List<String> township;
+//
+//    private List<String> township;
 
 
 }

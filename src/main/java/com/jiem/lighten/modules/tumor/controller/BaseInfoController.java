@@ -45,6 +45,15 @@ public class BaseInfoController {
         return Result.of(null);
     }
 
+    /**
+     * 转换街道
+     */
+    @GetMapping("convertJieDao")
+    public Result<String> convertJieDao() {
+        baseInfoService.convertJieDao();
+        return Result.of(null);
+    }
+
 
     /**
      * 拉取并保存基础数据

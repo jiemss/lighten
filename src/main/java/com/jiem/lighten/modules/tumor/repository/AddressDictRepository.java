@@ -4,6 +4,8 @@ import com.jiem.lighten.common.base.repository.CommonRepository;
 import com.jiem.lighten.modules.tumor.pojo.AddressDict;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * 地址字典 Repository
  *
@@ -20,5 +22,14 @@ public interface AddressDictRepository extends CommonRepository<AddressDict, Lon
      * @return 地址字典
      */
     AddressDict findFirstByValue(Long value);
+
+    /**
+     * 按级别查询
+     *
+     * @param level 级别
+     * @return 字典
+     */
+    List<AddressDict> findByLevel(Integer level);
+
 }
 

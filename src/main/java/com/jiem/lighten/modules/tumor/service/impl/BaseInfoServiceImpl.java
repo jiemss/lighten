@@ -11,6 +11,9 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.jiem.lighten.api.gaode.GaoDeMapApi;
+import com.jiem.lighten.api.gaode.bean.GeoCode;
+import com.jiem.lighten.api.gaode.bean.ReGeoCode;
 import com.jiem.lighten.common.base.service.CommonServiceImpl;
 import com.jiem.lighten.common.util.GsonUtils;
 import com.jiem.lighten.common.util.JsonUtils;
@@ -34,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 /**
  * 基础信息 ServiceImpl
@@ -49,11 +53,14 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
 
     private static final String BASE_URL = CONTEXT_URL + "/Program/BaseInfo/MsgBaseInfo";
     private static final String ADDRESS_DICT_URL = CONTEXT_URL + "/Dictionaries/Address";
+    private static Map<String, List<AddressDict>> addressDictMap = null;
 
     @Resource
     private BaseInfoRepository baseInfoRepository;
     @Resource
     private AddressDictRepository addressDictRepository;
+    @Resource
+    private GaoDeMapApi gaoDeMapApi;
 
     @Override
     public void popAndSaveBaseInfo(String cookie) {
@@ -112,7 +119,58 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                 }
             }
         }
+    }
 
+
+    @Override
+    public void convertJieDao() {
+        int pageIndex = 1;
+        int recordCount = 100;
+        while (true) {
+            PageRequest pageRequest = PageRequest.of(pageIndex - 1, recordCount, Sort.by("id"));
+            Page<BaseInfo> baseInfos = baseInfoRepository.findAll(pageRequest);
+            if (CollectionUtil.isEmpty(baseInfos) || baseInfos.isEmpty()) {
+                break;
+            }
+            pageIndex++;
+            for (BaseInfo baseInfo : baseInfos) {
+                // 已结束
+                Boolean isOk = baseInfo.getIsOk();
+                Boolean isConvert = baseInfo.getIsConvert();
+                if ((isConvert != null && isConvert) || (isOk != null && isOk)) {
+                    continue;
+                }
+
+                String address = baseInfo.getAddress();
+                if (isJinShuiNull(address)) {
+                    baseInfo.setIsJinShuiNull(true);
+                    baseInfoRepository.save(baseInfo);
+                    continue;
+                } else {
+                    baseInfo.setIsJinShuiNull(false);
+                }
+
+                AddressDict addressDict = belongAddressDict(address);
+                if (addressDict == null) {
+                    List<GeoCode> geoCodeList = gaoDeMapApi.searchLocation("郑州", address);
+                    if (CollectionUtil.isNotEmpty(geoCodeList)) {
+                        GeoCode geoCode = geoCodeList.get(0);
+                        ReGeoCode reGeoCode = gaoDeMapApi.searchAddressDetail(geoCode.getLocation());
+                        addressDict = belongAddressDict2(reGeoCode.getTownship());
+                        baseInfo.setCity(reGeoCode.getCity());
+                        baseInfo.setDistrict(reGeoCode.getDistrict());
+                        baseInfo.setStreet(reGeoCode.getTownship());
+                    }
+                }
+                if (addressDict != null) {
+                    baseInfo.setIsConvert(true);
+                    baseInfo.setDistrictCode(addressDict.getUpId());
+                    baseInfo.setStreetCode(addressDict.getValue());
+                    baseInfo.setStreet(addressDict.getText());
+                }
+                baseInfoRepository.save(baseInfo);
+            }
+        }
     }
 
 
@@ -250,16 +308,80 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
 
     }
 
-
-    public static void main(String[] args) {
-        System.out.println(removeMatch("swerwe1213撒1啊a啊122----12===啊"));
+    /**
+     * 是否为空地址
+     *
+     * @param address 地址
+     * @return 结果
+     */
+    private boolean isJinShuiNull(String address) {
+        if (StringUtils.hasText(address)) {
+            address = address.replaceAll("河南省", "");
+            address = address.replaceAll("郑州市", "");
+            address = address.replaceAll("金水区", "");
+            address = address.replaceAll("河南", "");
+            address = address.replaceAll("郑州", "");
+            address = address.replaceAll("金水", "");
+            address = address.replaceAll("市辖区", "");
+            address = address.replaceAll("不详", "");
+            address = address.replaceAll("镇", "");
+            address = address.replaceAll("乡", "");
+            address = address.replaceAll("郑", "");
+            address = address.replaceAll("河", "");
+            address = address.replaceAll("金", "");
+        }
+        return StrUtil.isEmpty(address);
     }
 
 
     /**
+     * 所属街道
+     *
+     * @param address 地址
+     * @return 地址
+     */
+    private AddressDict belongAddressDict(String address) {
+        if (addressDictMap == null) {
+            List<AddressDict> addressDictList = addressDictRepository.findByLevel(3);
+            addressDictMap = addressDictList.stream().collect(Collectors.groupingBy(AddressDict::getText));
+        }
+        for (String key : addressDictMap.keySet()) {
+            if (address.contains(key)) {
+                List<AddressDict> addressDictList = addressDictMap.get(key);
+                if (CollectionUtil.isNotEmpty(addressDictList)) {
+                    return addressDictList.get(0);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 所属街道
+     *
+     * @param address 地址
+     * @return 地址
+     */
+    private AddressDict belongAddressDict2(String address) {
+        if (addressDictMap == null) {
+            List<AddressDict> addressDictList = addressDictRepository.findByLevel(3);
+            addressDictMap = addressDictList.stream().collect(Collectors.groupingBy(AddressDict::getText));
+        }
+        for (String key : addressDictMap.keySet()) {
+            if (key.contains(address)) {
+                List<AddressDict> addressDictList = addressDictMap.get(key);
+                if (CollectionUtil.isNotEmpty(addressDictList)) {
+                    return addressDictList.get(0);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * 字符串只保留数字、字母、中文
      */
-    public static String removeMatch(String str) {
+    private static String removeMatch(String str) {
         if (!StringUtils.hasText(str)) {
             return str;
         }

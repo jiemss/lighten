@@ -4,7 +4,8 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.jiem.lighten.api.gaode.bean.GeoCode;
 import com.jiem.lighten.api.gaode.bean.ReGeoCode;
@@ -77,8 +78,8 @@ public class GaoDeMapApi {
                     if (reGeoCodeJsonObject != null) {
                         ReGeoCode reGeoCode = GsonUtils.gson().fromJson(reGeoCodeJsonObject.getAsJsonObject().get("addressComponent"), ReGeoCode.class);
                         reGeoCode.setFormattedAddress(reGeoCodeJsonObject.get("formatted_address").getAsString());
-                        reGeoCode.setPois(GsonUtils.gson().fromJson(reGeoCodeJsonObject.getAsJsonObject().get("pois"), new TypeToken<List<ReGeoCode.Poi>>() {
-                        }.getType()));
+//                        reGeoCode.setPois(GsonUtils.gson().fromJson(reGeoCodeJsonObject.getAsJsonObject().get("pois"), new TypeToken<List<ReGeoCode.Poi>>() {
+//                        }.getType()));
                         return reGeoCode;
                     }
                 }

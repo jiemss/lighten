@@ -23,7 +23,7 @@ public class ReGeoCode {
      */
     private String province;
     /**
-     * 省
+     * 城市
      */
     private String city;
     /**
@@ -34,7 +34,7 @@ public class ReGeoCode {
     /**
      * 门牌信息列表
      */
-    private StreetNumber streetNumber;
+//    private StreetNumber streetNumber;
 
     /**
      * 坐标点所在乡镇/街道（此街道为社区街道，不是道路信息）
@@ -111,11 +111,11 @@ public class ReGeoCode {
          * 方向
          */
         private String direction;
-        /**
-         * 所在商圈名称
-         */
-        @SerializedName("businessarea")
-        private String businessArea;
+//        /**
+//         * 所在商圈名称
+//         */
+//        @SerializedName("businessarea")
+//        private String businessArea;
         /**
          * 地址信息
          */

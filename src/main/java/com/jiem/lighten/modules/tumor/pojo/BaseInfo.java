@@ -73,6 +73,28 @@ public class BaseInfo implements Serializable {
     @ExcelProperty("更新时间")
     private String updated;
 
+    @ExcelProperty("是否空地址")
+    private Boolean isJinShuiNull;
 
+    @ExcelProperty("是否已转化")
+    private Boolean isConvert;
+
+    @ExcelProperty("所属城市")
+    private String city;
+
+    @ExcelProperty("所属区编码")
+    private Long districtCode;
+
+    @ExcelProperty("所属区")
+    private String district;
+
+    @ExcelProperty("所属街道编码")
+    private Long streetCode;
+
+    @ExcelProperty("所属街道")
+    private String street;
+
+    @ExcelProperty("是否已结束")
+    private Boolean isOk;
 }
 

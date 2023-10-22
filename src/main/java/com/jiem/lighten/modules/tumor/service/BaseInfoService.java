@@ -31,6 +31,11 @@ public interface BaseInfoService extends CommonService<BaseInfoVo, BaseInfo, Lon
      */
     void popAndSaveAddressDict(String cookie);
 
+    /**
+     * 转换街道
+     */
+     void convertJieDao();
+
     BiConsumer<ExcelWriter, WriteSheet> excel();
 }
 
