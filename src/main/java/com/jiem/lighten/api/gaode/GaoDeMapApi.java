@@ -1,19 +1,16 @@
 package com.jiem.lighten.api.gaode;
 
-import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
-import com.jiem.lighten.api.gaode.bean.GeoCode;
 import com.jiem.lighten.api.gaode.bean.ReGeoCode;
 import com.jiem.lighten.common.util.GsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * 高德地址API
@@ -28,11 +25,19 @@ public class GaoDeMapApi {
     private static final String SEARCH_ADDRESS_DETAIL_URL = "https://restapi.amap.com/v3/geocode/regeo";
 
 
-    public ReGeoCode searchAddressDetail(String city, String address){
-
+    /**
+     * 根据地址详细信息
+     *
+     * @param city    城市
+     * @param address 详细地址
+     */
+    public ReGeoCode searchAddressDetail(String city, String address) {
+        String location = searchLocation(city, address);
+        if (StrUtil.isNotBlank(location)) {
+            return searchAddressDetail(location);
+        }
         return null;
     }
-
 
 
     /**
@@ -41,9 +46,8 @@ public class GaoDeMapApi {
      * @param city    城市
      * @param address 详细地址
      */
-    public List<GeoCode> searchLocation(String city, String address) {
+    private String searchLocation(String city, String address) {
         log.info("根据地址搜索坐标 入参：city=[{}] address=[{}]", city, address);
-
         HttpRequest request = HttpUtil.createGet(SEARCH_LOCATION_URL);
         request.form("key", getKey());
         request.form("city", city);
@@ -53,11 +57,20 @@ public class GaoDeMapApi {
             log.info("根据地址搜索坐标 结果：{}", body);
             JsonObject resultJson = GsonUtils.parse(body);
             if (resultJson != null && "1".equals(resultJson.get("status").getAsString())) {
-                return GsonUtils.gson().fromJson(resultJson.get("geocodes"), new TypeToken<List<GeoCode>>() {
-                }.getType());
+                JsonElement geocodesJsonElement = resultJson.get("geocodes");
+                if (geocodesJsonElement != null) {
+                    JsonArray geocodesJsonArray = geocodesJsonElement.getAsJsonArray();
+                    JsonElement jsonElement = geocodesJsonArray.get(0);
+                    if (jsonElement != null) {
+                        JsonElement location = jsonElement.getAsJsonObject().get("location");
+                        if (location != null) {
+                            return location.getAsString();
+                        }
+                    }
+                }
             }
         }
-        return ListUtil.empty();
+        return null;
     }
 
 
@@ -66,7 +79,7 @@ public class GaoDeMapApi {
      *
      * @param location 经纬度坐标点
      */
-    public ReGeoCode searchAddressDetail(String location) {
+    private ReGeoCode searchAddressDetail(String location) {
         log.info("根据坐标搜索地址 入参：location=[{}]", location);
         HttpRequest request = HttpUtil.createGet(SEARCH_ADDRESS_DETAIL_URL);
         request.form("key", getKey());
@@ -86,8 +99,6 @@ public class GaoDeMapApi {
                     if (reGeoCodeJsonObject != null) {
                         ReGeoCode reGeoCode = GsonUtils.gson().fromJson(reGeoCodeJsonObject.getAsJsonObject().get("addressComponent"), ReGeoCode.class);
                         reGeoCode.setFormattedAddress(reGeoCodeJsonObject.get("formatted_address").getAsString());
-//                        reGeoCode.setPois(GsonUtils.gson().fromJson(reGeoCodeJsonObject.getAsJsonObject().get("pois"), new TypeToken<List<ReGeoCode.Poi>>() {
-//                        }.getType()));
                         return reGeoCode;
                     }
                 }
@@ -102,7 +113,8 @@ public class GaoDeMapApi {
      * @return key
      */
     private String getKey() {
-        return "5036988c951dceb125dd80e279dc13e1";
+        return "ca1754d49d6de4202fefb064f2a23364";
+//        return "5036988c951dceb125dd80e279dc13e1";
     }
 
 

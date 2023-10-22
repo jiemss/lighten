@@ -12,6 +12,7 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.jiem.lighten.api.gaode.GaoDeMapApi;
+import com.jiem.lighten.api.gaode.bean.ReGeoCode;
 import com.jiem.lighten.common.base.service.CommonServiceImpl;
 import com.jiem.lighten.common.util.GsonUtils;
 import com.jiem.lighten.common.util.JsonUtils;
@@ -32,6 +33,7 @@ import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -140,6 +142,7 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
 
                     String address = baseInfo.getAddress();
                     if (isJinShuiNull(address)) {
+                        address = baseInfo.getConservation();
                         if (isJinShuiNull(baseInfo.getConservation())) {
                             baseInfo.setIsJinShuiNull(true);
                             baseInfo.setCity(null);
@@ -154,25 +157,23 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                         baseInfo.setIsJinShuiNull(false);
                     }
 
-//                    AddressDict addressDict = belongAddressDict(address);
-//                    if (addressDict == null) {
-//                        List<GeoCode> geoCodeList = gaoDeMapApi.searchLocation("郑州", address);
-//                        if (CollectionUtil.isNotEmpty(geoCodeList)) {
-//                            GeoCode geoCode = geoCodeList.get(0);
-//                            ReGeoCode reGeoCode = gaoDeMapApi.searchAddressDetail(geoCode.getLocation());
-//                            addressDict = belongAddressDict2(reGeoCode.getTownship());
-//                            baseInfo.setCity(reGeoCode.getCity());
-//                            baseInfo.setDistrict(reGeoCode.getDistrict());
-//                            baseInfo.setStreet(reGeoCode.getTownship());
-//                        }
-//                    }
-//                    if (addressDict != null) {
-//                        baseInfo.setIsConvert(true);
-//                        baseInfo.setDistrictCode(addressDict.getUpId());
-//                        baseInfo.setStreetCode(addressDict.getValue());
-//                        baseInfo.setStreet(addressDict.getText());
-//                    }
-//                    baseInfoRepository.save(baseInfo);
+                    AddressDict addressDict = belongAddressDict(address);
+                    if (addressDict == null) {
+                        ReGeoCode reGeoCode = gaoDeMapApi.searchAddressDetail("郑州", address);
+                        if (Objects.nonNull(reGeoCode)) {
+                            addressDict = belongAddressDict2(reGeoCode.getTownship());
+                            baseInfo.setCity(reGeoCode.getCity());
+                            baseInfo.setDistrict(reGeoCode.getDistrict());
+                            baseInfo.setStreet(reGeoCode.getTownship());
+                        }
+                    }
+                    if (addressDict != null) {
+                        baseInfo.setIsConvert(true);
+                        baseInfo.setDistrictCode(addressDict.getUpId());
+                        baseInfo.setStreetCode(addressDict.getValue());
+                        baseInfo.setStreet(addressDict.getText());
+                    }
+                    baseInfoRepository.save(baseInfo);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

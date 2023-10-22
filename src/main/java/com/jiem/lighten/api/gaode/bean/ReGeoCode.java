@@ -1,6 +1,5 @@
 package com.jiem.lighten.api.gaode.bean;
 
-import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 
@@ -36,21 +35,5 @@ public class ReGeoCode {
      * 结构化地址信息
      */
     private String formattedAddress;
-    /**
-     * 城市编码
-     */
-    @SerializedName("citycode")
-    private String cityCode;
-    /**
-     * 乡镇街道编码
-     */
-    @SerializedName("towncode")
-    private String townCode;
-    /**
-     * 行政区编码
-     */
-    @SerializedName("adcode")
-    private String adCode;
-
 
 }
