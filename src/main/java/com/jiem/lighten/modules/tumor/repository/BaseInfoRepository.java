@@ -12,5 +12,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface BaseInfoRepository extends CommonRepository<BaseInfo, Long> {
+
+    /**
+     * 通过编号查询 基础信息
+     *
+     * @param registr 编号
+     * @return 基础信息
+     */
+    BaseInfo findFirstByRegistr(String registr);
 }
 

@@ -30,6 +30,10 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
+
+    properties:
+      hibernate:
+        format_sql: true
   h2:
     console:
       path: /h2

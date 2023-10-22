@@ -35,6 +35,17 @@ public class BaseInfoController {
         return Result.of(null);
     }
 
+
+    /**
+     * 远程拉取地址字典
+     */
+    @PostMapping("popAndSaveAddressDict")
+    public Result<String> popAndSaveAddressDict(@RequestBody String cookie) {
+        baseInfoService.popAndSaveAddressDict(cookie);
+        return Result.of(null);
+    }
+
+
     /**
      * 拉取并保存基础数据
      */

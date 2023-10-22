@@ -7,7 +7,6 @@ import com.jiem.lighten.common.base.service.CommonService;
 import com.jiem.lighten.modules.tumor.pojo.BaseInfo;
 import com.jiem.lighten.modules.tumor.vo.BaseInfoVo;
 
-import java.io.OutputStream;
 import java.util.function.BiConsumer;
 
 /**
@@ -21,9 +20,16 @@ public interface BaseInfoService extends CommonService<BaseInfoVo, BaseInfo, Lon
     /**
      * 拉取并保存基础数据
      *
-     * @param cookie  cookie
+     * @param cookie cookie
      */
     void popAndSaveBaseInfo(String cookie);
+
+    /**
+     * 远程拉取地址字典
+     *
+     * @param cookie cookie
+     */
+    void popAndSaveAddressDict(String cookie);
 
     BiConsumer<ExcelWriter, WriteSheet> excel();
 }

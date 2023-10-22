@@ -2,7 +2,8 @@ package com.jiem.lighten.modules.tumor.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.ReUtil;
+import cn.hutool.core.text.UnicodeUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
@@ -11,9 +12,11 @@ import com.alibaba.excel.write.metadata.WriteSheet;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.jiem.lighten.common.base.service.CommonServiceImpl;
-import com.jiem.lighten.common.util.ExcelUtils;
 import com.jiem.lighten.common.util.GsonUtils;
+import com.jiem.lighten.common.util.JsonUtils;
+import com.jiem.lighten.modules.tumor.pojo.AddressDict;
 import com.jiem.lighten.modules.tumor.pojo.BaseInfo;
+import com.jiem.lighten.modules.tumor.repository.AddressDictRepository;
 import com.jiem.lighten.modules.tumor.repository.BaseInfoRepository;
 import com.jiem.lighten.modules.tumor.service.BaseInfoService;
 import com.jiem.lighten.modules.tumor.vo.BaseInfoVo;
@@ -21,17 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.io.OutputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -44,16 +45,19 @@ import java.util.function.BiConsumer;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo, Long> implements BaseInfoService {
+    private static final String CONTEXT_URL = "http://218.28.13.204:35556/";
 
-    private static final String BASE_URL = "http://218.28.13.204:35556/Program/BaseInfo/MsgBaseInfo";
-    private static final String COOKIE = ".AspNetCore.Antiforgery.3UQ283wQwb4=CfDJ8AMr_7fNIK1Bpq1z65p4ZsQAS-nvbY1TNBT3dZxVZ6hjWBG5pIwezj94IZkoStAsCqz_aiP7H3Ja8HSNzWk7pNHwm3rRm7H6BmDPGnXRVA4v51BTCM7qNVg6nln5oReKmBtsMj58TtpGv0ff-NslJl4; .AspNetCore.Session=CfDJ8AMr%2F7fNIK1Bpq1z65p4ZsSlIqzSr5yKe7ifr3Bv1NTLGcqCmmYZYuw43Kz8rjRRHcMneKKd3OqeSh79L7H5G9wixkMIe042L%2FuflpWfUqfLjZR0LOElMl%2Fi7JAqQe2ufUG5QFGiMy6jAd4Mh5JuvVhia52brOpymBLDpZiZrO9q";
+    private static final String BASE_URL = CONTEXT_URL + "/Program/BaseInfo/MsgBaseInfo";
+    private static final String ADDRESS_DICT_URL = CONTEXT_URL + "/Dictionaries/Address";
 
     @Resource
     private BaseInfoRepository baseInfoRepository;
+    @Resource
+    private AddressDictRepository addressDictRepository;
 
     @Override
     public void popAndSaveBaseInfo(String cookie) {
-        int pageIndex = 1;
+        int pageIndex = 0;
         int recordCount = 100;
         while (true) {
             log.info("拉取远程数据 pageIndex={} recordCount={}", pageIndex, recordCount);
@@ -62,9 +66,55 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                 break;
             }
             pageIndex++;
-            baseInfoRepository.saveAll(baseInfos);
+            for (BaseInfo baseInfo : baseInfos) {
+                BaseInfo dbBaseInfo = baseInfoRepository.findFirstByRegistr(baseInfo.getRegistr());
+                if (dbBaseInfo != null) {
+                    continue;
+                }
+                baseInfo.setId(null);
+                baseInfoRepository.save(baseInfo);
+            }
         }
+        log.info("拉取远程数据 结束 ... ");
     }
+
+    @Override
+    public void popAndSaveAddressDict(String cookie) {
+        List<AddressDict> addressDictList = popAddressDict(410105000000L, true, cookie);
+        // 河南省
+        for (AddressDict addressDict : addressDictList) {
+            if (null == addressDictRepository.findFirstByValue(addressDict.getValue())) {
+                addressDict.setId(null);
+                addressDictRepository.save(addressDict);
+            }
+            // 郑州市
+            List<AddressDict> firstAddressDictList = addressDict.getNodes();
+            for (AddressDict firstAddressDict : firstAddressDictList) {
+                if (null == addressDictRepository.findFirstByValue(firstAddressDict.getValue())) {
+                    firstAddressDict.setId(null);
+                    addressDictRepository.save(firstAddressDict);
+                }
+                // 金水区
+                List<AddressDict> twoAddressDictList = popAddressDict(firstAddressDict.getValue(), false, cookie);
+                for (AddressDict twoAddressDict : twoAddressDictList) {
+                    if (null == addressDictRepository.findFirstByValue(twoAddressDict.getValue())) {
+                        twoAddressDict.setId(null);
+                        addressDictRepository.save(twoAddressDict);
+                    }
+                    // 街道
+                    List<AddressDict> threeAddressDictList = popAddressDict(twoAddressDict.getValue(), false, cookie);
+                    for (AddressDict threeAddress : threeAddressDictList) {
+                        if (null == addressDictRepository.findFirstByValue(threeAddress.getValue())) {
+                            threeAddress.setId(null);
+                            addressDictRepository.save(threeAddress);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
 
     @Override
     public BiConsumer<ExcelWriter, WriteSheet> excel() {
@@ -121,7 +171,7 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
     }
 
     /**
-     * 远程拉取
+     * 远程拉取基础信息
      *
      * @param pageIndex   第几页
      * @param recordCount 每页大小
@@ -142,15 +192,64 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
 
         try (HttpResponse execute = request.execute()) {
             String body = execute.body();
-            log.info("根据地址搜索坐标 结果：{}", body);
+            log.info("远程拉取基础信息 结果：{}", body);
             JsonObject resultJson = GsonUtils.parse(body);
             if (resultJson != null && "000".equals(resultJson.get("code").getAsString())) {
                 return GsonUtils.gson().fromJson(resultJson.get("dataset"), new TypeToken<List<BaseInfo>>() {
                 }.getType());
             }
+            return ListUtil.empty();
         }
-        return ListUtil.empty();
     }
+
+
+    /**
+     * 远程拉取地址字典
+     *
+     * @param msg    值
+     * @param root   是否根节点
+     * @param cookie cookie
+     * @return 地址字典
+     */
+    private List<AddressDict> popAddressDict(Long msg, Boolean root, String cookie) {
+        Map<String, Object> keyMap = new HashMap<>(3);
+        if (root != null && root) {
+            keyMap.put("root", "000000000000");
+            keyMap.put("type", "INIT");
+        } else {
+            keyMap.put("type", "SUB");
+        }
+        keyMap.put("msg", msg);
+
+        HttpRequest request = HttpUtil.createGet(ADDRESS_DICT_URL).form("Key", JsonUtils.toJson(keyMap));
+        request.header("Accept", "application/json, text/javascript, */*; q=0.01");
+        request.header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+        request.header("Cookie", cookie);
+
+        try (HttpResponse execute = request.execute()) {
+            String body = execute.body();
+            if (StrUtil.isNotBlank(body)) {
+                body = body.substring(1, body.length() - 1);
+            }
+            body = UnicodeUtil.toString(body);
+            log.info("远程拉取地址字典 结果：{}", body);
+            List<AddressDict> result;
+            if (root != null && root) {
+                result = GsonUtils.gson().fromJson(body, new TypeToken<List<AddressDict>>() {
+                }.getType());
+            } else {
+                JsonObject resultJson = GsonUtils.parse(body);
+                result = GsonUtils.gson().fromJson(resultJson.get("nodes"), new TypeToken<List<AddressDict>>() {
+                }.getType());
+            }
+            for (AddressDict addressDict : result) {
+                addressDict.setText(addressDict.getText().replaceAll("[^\u4e00-\u9fa5]", ""));
+            }
+            return result;
+        }
+
+    }
+
 
     public static void main(String[] args) {
         System.out.println(removeMatch("swerwe1213撒1啊a啊122----12===啊"));
