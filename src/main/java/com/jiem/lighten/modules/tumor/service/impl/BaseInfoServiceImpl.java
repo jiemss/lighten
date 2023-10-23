@@ -189,13 +189,13 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
             int pageIndex = 0;
             int recordCount = 10000;
             while (true) {
-                PageRequest pageRequest = PageRequest.of(pageIndex, recordCount, Sort.by("street"));
+                PageRequest pageRequest = PageRequest.of(pageIndex, recordCount, Sort.by("streetCode"));
                 Page<BaseInfo> baseInfos = baseInfoRepository.findAll(pageRequest);
                 if (CollectionUtil.isEmpty(baseInfos) || baseInfos.isEmpty()) {
                     break;
                 }
                 pageIndex++;
-                List<BaseInfo> content = baseInfos.getContent().stream().filter(item -> item.getIsOk() != null && item.getIsOk()).collect(Collectors.toList());
+                List<BaseInfo> content = baseInfos.getContent().stream().collect(Collectors.toList());
                 if (CollectionUtil.isNotEmpty(content)) {
                     excelWriter.write(content, writeSheet);
                 }
@@ -256,6 +256,61 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                             baseInfoRepository.save(baseInfo);
                             suNum++;
                         }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return suNum;
+    }
+
+    @Override
+    public Integer isJinShuiNull2(Long fromStreetCode, Long toStreetCode, Integer num, String cookie) {
+        int pageIndex = 1;
+        int recordCount = 100;
+
+        int suNum = 0;
+        int index = 0;
+        while (true) {
+            PageRequest pageRequest = PageRequest.of(pageIndex - 1, recordCount, Sort.by("id"));
+            Page<BaseInfo> baseInfos = baseInfoRepository.findAll(pageRequest);
+            if (CollectionUtil.isEmpty(baseInfos) || baseInfos.isEmpty()) {
+                break;
+            }
+            pageIndex++;
+            for (BaseInfo baseInfo : baseInfos) {
+                try {
+                    // 已结束
+                    Boolean isOk = baseInfo.getIsOk();
+                    if (isOk == null || !isOk) {
+                        continue;
+                    }
+
+                    Boolean isJinShuiNull = baseInfo.getIsJinShuiNull();
+                    if (isJinShuiNull == null || !isJinShuiNull) {
+                        continue;
+                    }
+
+                    if (!baseInfo.getStreetCode().equals(fromStreetCode)) {
+                        continue;
+                    }
+
+                    if (index > num - 1) {
+                        return suNum;
+                    } else {
+                        index++;
+                    }
+                    log.info("转换数据基础信息 结果：{}", JsonUtils.toJson(baseInfo));
+                    Boolean aBoolean = popBaseInfo(baseInfo.getRegistr(), toStreetCode, cookie);
+                    if (aBoolean) {
+                        AddressDict addressDict = addressDictRepository.findFirstByValue(toStreetCode);
+                        baseInfo.setIsOk(true);
+                        baseInfo.setDistrictCode(addressDict.getUpId());
+                        baseInfo.setStreetCode(toStreetCode);
+                        baseInfo.setStreet(addressDict.getText());
+                        baseInfoRepository.save(baseInfo);
+                        suNum++;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

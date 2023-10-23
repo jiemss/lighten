@@ -42,5 +42,7 @@ public interface BaseInfoService extends CommonService<BaseInfoVo, BaseInfo, Lon
     Boolean exeBaseInfo(String registr, Long streetCode, String cookie);
 
     Integer isJinShuiNull(Long streetCode, Integer num, String cookie);
+
+    Integer isJinShuiNull2(Long fromStreetCode, Long toStreetCode, Integer num, String cookie);
 }
 
