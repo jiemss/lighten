@@ -18,10 +18,12 @@ import com.jiem.lighten.common.util.GsonUtils;
 import com.jiem.lighten.common.util.JsonUtils;
 import com.jiem.lighten.modules.tumor.pojo.AddressDict;
 import com.jiem.lighten.modules.tumor.pojo.BaseInfo;
+import com.jiem.lighten.modules.tumor.pojo.QBaseInfo;
 import com.jiem.lighten.modules.tumor.repository.AddressDictRepository;
 import com.jiem.lighten.modules.tumor.repository.BaseInfoRepository;
 import com.jiem.lighten.modules.tumor.service.BaseInfoService;
 import com.jiem.lighten.modules.tumor.vo.BaseInfoVo;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -58,6 +60,8 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
     private AddressDictRepository addressDictRepository;
     @Resource
     private GaoDeMapApi gaoDeMapApi;
+    @Resource
+    private JPAQueryFactory queryFactory;
 
     @Override
     public void popAndSaveBaseInfo(String cookie) {
@@ -122,7 +126,8 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
     @Override
     public void convertJieDao() {
         int pageIndex = 1;
-        int recordCount = 100;
+        int recordCount = 1000;
+        QBaseInfo qBaseInfo = QBaseInfo.baseInfo;
         while (true) {
             PageRequest pageRequest = PageRequest.of(pageIndex - 1, recordCount, Sort.by("id"));
             Page<BaseInfo> baseInfos = baseInfoRepository.findAll(pageRequest);
@@ -131,7 +136,6 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
             }
             pageIndex++;
             for (BaseInfo baseInfo : baseInfos) {
-                log.info("转换街道 baseInfo={}", JsonUtils.toJson(baseInfo));
                 try {
                     // 已结束
                     Boolean isOk = baseInfo.getIsOk();
@@ -139,6 +143,7 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                     if ((isConvert != null && isConvert) || (isOk != null && isOk)) {
                         continue;
                     }
+                    log.info("转换街道 baseInfo={}", JsonUtils.toJson(baseInfo));
 
                     String address = baseInfo.getAddress();
                     if (isJinShuiNull(address)) {
@@ -195,7 +200,7 @@ public class BaseInfoServiceImpl extends CommonServiceImpl<BaseInfoVo, BaseInfo,
                     break;
                 }
                 pageIndex++;
-                List<BaseInfo> content = baseInfos.getContent().stream().collect(Collectors.toList());
+                List<BaseInfo> content = baseInfos.getContent().stream().filter(item -> item.getIsOk() == null || !item.getIsOk()).collect(Collectors.toList());
                 if (CollectionUtil.isNotEmpty(content)) {
                     excelWriter.write(content, writeSheet);
                 }
