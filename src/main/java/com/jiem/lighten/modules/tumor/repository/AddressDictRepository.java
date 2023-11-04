@@ -1,7 +1,7 @@
 package com.jiem.lighten.modules.tumor.repository;
 
 import com.jiem.lighten.common.base.repository.CommonRepository;
-import com.jiem.lighten.modules.tumor.pojo.AddressDict;
+import com.jiem.lighten.modules.tumor.entity.AddressDict;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

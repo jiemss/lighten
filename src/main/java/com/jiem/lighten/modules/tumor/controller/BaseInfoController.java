@@ -4,7 +4,7 @@ import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.jiem.lighten.common.base.pojo.Result;
 import com.jiem.lighten.common.util.ExcelUtils;
-import com.jiem.lighten.modules.tumor.pojo.BaseInfo;
+import com.jiem.lighten.modules.tumor.entity.BaseInfo;
 import com.jiem.lighten.modules.tumor.service.BaseInfoService;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,4 +1,4 @@
-package com.jiem.lighten.modules.tumor.pojo;
+package com.jiem.lighten.modules.tumor.entity;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;

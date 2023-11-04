@@ -4,7 +4,7 @@ package com.jiem.lighten.modules.tumor.service;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.jiem.lighten.common.base.service.CommonService;
-import com.jiem.lighten.modules.tumor.pojo.BaseInfo;
+import com.jiem.lighten.modules.tumor.entity.BaseInfo;
 import com.jiem.lighten.modules.tumor.vo.BaseInfoVo;
 
 import java.util.function.BiConsumer;

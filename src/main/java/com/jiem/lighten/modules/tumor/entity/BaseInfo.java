@@ -1,4 +1,4 @@
-package com.jiem.lighten.modules.tumor.pojo;
+package com.jiem.lighten.modules.tumor.entity;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
