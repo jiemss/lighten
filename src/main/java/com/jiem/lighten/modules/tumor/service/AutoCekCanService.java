@@ -101,7 +101,7 @@ public class AutoCekCanService {
             while (true) {
                 JPAQuery<AutoCekCan> autoCekCanJpaQuery = queryFactory.selectFrom(qAutoCekCan);
                 // 全量
-                if (type != 0) {
+                if (type == 0) {
                     autoCekCanJpaQuery.where(qAutoCekCan.id.eq(-1L));
                 }
                 autoCekCanJpaQuery.orderBy(qAutoCekCan.id.desc());
@@ -115,6 +115,8 @@ public class AutoCekCanService {
                 for (AutoCekCan autoCekCan : autoCekCanList) {
                     List<AutoCekCanItem> autoCekCanItems = queryFactory.selectFrom(qAutoCekCanItem).where(qAutoCekCanItem.cekCanId.eq(autoCekCan.getId())).fetch();
                     if (type == 2 && !autoCekCanItemsCompare(autoCekCanItems)) {
+                        continue;
+                    } else if (type == 3 && autoCekCanItemsCompare(autoCekCanItems)) {
                         continue;
                     }
 

@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorContro
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -20,7 +19,7 @@ import java.util.Map;
  * @author: haojunjie
  * @date: 2023-10-21 14:32
  */
-@Controller
+//@Controller
 public class ErrorPageConfig extends BasicErrorController {
 
     public ErrorPageConfig() {
